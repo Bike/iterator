@@ -1,0 +1,62 @@
+(in-package #:iterator)
+
+(defmacro do-iterator ((elementf object iterator-form &optional result)
+                      &body body)
+  (let ((objectg (gensym "OBJECT")) (iterator (gensym "ITERATOR"))
+        (step (gensym "STEP")) (endp (gensym "ENDP"))
+        (elt (gensym "ELT")) (setelt (gensym "SETELT")))
+    `(let ((,objectg ,object))
+       (multiple-value-bind (,iterator ,step ,endp ,elt ,setelt) ,iterator-form
+         (declare (type function ,endp ,elt ,setelt))
+         (flet ((,elementf () (funcall ,elt ,objectg ,iterator))
+                ((setf ,elementf) (nv)
+                  (funcall ,setelt nv ,objectg ,iterator)))
+           (declare (dynamic-extent #',elementf #'(setf ,elementf))
+                    (ignorable #',elementf #'(setf ,elementf)))
+           (do ()
+               ((funcall ,endp ,objectg ,iterator) ,result)
+             ,@body
+             (setf ,iterator (funcall ,step ,objectg ,iterator))))))))
+
+(defmacro do-iterator-elements ((var object iterator-form &optional result)
+                                &body body)
+  (let ((eltf (gensym "ELEMENTF")))
+    `(do-iterator (,eltf ,object ,iterator-form ,result)
+       (let ((,var (,eltf))) (tagbody ,@body)))))
+
+(defmacro do-iteration ((elementf (object &rest kwargs &key &allow-other-keys)
+                         &optional result)
+                        &body body)
+  (let ((objectg (gensym "OBJECT")) (iterator (gensym "ITERATOR"))
+        (step (gensym "STEP")) (endp (gensym "ENDP"))
+        (elt (gensym "ELT")) (setelt (gensym "SETELT")))
+    `(let ((,objectg ,object))
+       (with-iterator (,iterator ,endp ,elt ,setelt) (,objectg ,@kwargs)
+         (flet ((,elementf () (funcall ,elt ,objectg ,iterator))
+                ((setf ,elementf) (nv)
+                  (funcall ,setelt nv ,objectg ,iterator)))
+           (declare (dynamic-extent #',elementf #'(setf ,elementf)))
+           (do ((,iterator ,iterator (funcall ,step ,objectg ,iterator)))
+               ((funcall ,endp ,objectg ,iterator) ,result)
+             ,@body))))))
+
+(defmacro do-elements ((var (object &rest kwargs &key &allow-other-keys)
+                           &optional result)
+                      &body body)
+  (let ((eltf (gensym "ELEMENTF")))
+    `(do-iteration (,eltf (,object ,@kwargs) ,result)
+       (let ((,var (,eltf))) (tagbody ,@body)))))
+
+;;;
+
+(defmacro do-accumulator ((accumf accumulator-form) &body body)
+  (let ((idx (gensym "IDX"))
+        (accum (gensym "ACCUMULATOR")) (add (gensym "ADD"))
+        (finalize (gensym "FINALIZE")))
+    `(multiple-value-bind (,accum ,idx ,add ,finalize) ,accumulator-form
+         (block nil
+           (flet ((,accumf (new-value)
+                    (setf ,idx (funcall ,add new-value ,accum ,idx))))
+             (declare (dynamic-extent #',accumf))
+             (tagbody ,@body)))
+         (funcall ,finalize ,accum ,idx))))
