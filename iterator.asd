@@ -1,4 +1,4 @@
-(defsystem :cleavir-bir
+(defsystem :iterator
   :depends-on ()
   :components
   ((:file "packages")
