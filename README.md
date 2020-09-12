@@ -28,8 +28,8 @@ _Generic Function_ **MAKE-ITERATOR**
   * _limit_ - ditto.
   * _step_ - a function of two arguments: the object and an iterator, which returns an iterator.
   * _endp_ - a function of three arguments: the object, an iterator, and the limit, which returns a generalized boolean.
-  * _elt_ - a function of two arguments: the object and an iterator, and returns an element of the object.
-  * _(setf elt)_ - a function of three arguments: a new value, the object, and an iterator, and returns the new value.
+  * _elt_ - a function of two arguments: the object and an iterator, which returns an element of the object.
+  * _(setf elt)_ - a function of three arguments: a new value, the object, and an iterator, which returns the new value.
 
 **Description:**
 
@@ -39,7 +39,7 @@ An iteration proceeds as follows. First, _endp_ is called to see if the iteratio
 
 **make-iterator** methods can take arbitrary keys. For example, a sequence may take _start_, _end_, and _from-end_ keyword arguments so that a subsequence and order may be specified without additional consing. A hash table might take an indicator for whether keys or values are the "elements" being considered.
 
-The protocol is designed to minimizing consing; thus the multitudinous return values rather than just returning closures.
+The protocol is designed to minimize consing; thus the multitudinous return values rather than just returning closures.
 
 ### make-accumulator
 
@@ -47,7 +47,7 @@ Rather than the extensible sequences' _make-sequence-like_ and _adjust-sequence_
 
 _Generic Function_ **MAKE-ACCUMULATOR**
 
-**Syntax:** **make-iterator** _object &key => accumulator, index, accumulate, finalize_
+**Syntax:** **make-accumulator** _object &key => accumulator, index, accumulate, finalize_
 
 **Arguments and Values:**
 
