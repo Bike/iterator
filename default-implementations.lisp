@@ -1,6 +1,7 @@
 (in-package #:iterator)
 
-(defmethod count (item object &rest kwargs &key test test-not key)
+(defmethod count (item object &rest kwargs
+                  &key test test-not key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :test :test-not :key)))
     (with-two-argument-test (test test-not key)
@@ -9,7 +10,7 @@
                                counter)
         (when (satisfies-the-test item e) (incf counter))))))
 
-(defmethod count-if (pred object &rest kwargs &key key)
+(defmethod count-if (pred object &rest kwargs &key key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :key)))
     (with-one-argument-test (pred key)
@@ -18,7 +19,7 @@
                                counter)
         (when (satisfies-the-test e) (incf counter))))))
 
-(defmethod count-if-not (pred object &rest kwargs &key key)
+(defmethod count-if-not (pred object &rest kwargs &key key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :key)))
     (with-one-argument-test (pred key)
@@ -27,28 +28,30 @@
                                counter)
         (unless (satisfies-the-test e) (incf counter))))))
 
-(defmethod find (item object &rest kwargs &key test test-not key)
+(defmethod find (item object &rest kwargs
+                 &key test test-not key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :test :test-not :key)))
     (with-two-argument-test (test test-not key)
       (do-iterator-elements (e object
                                (apply #'make-iterator object new-kwargs) nil)
         (when (satisfies-the-test item e) (return e))))))
 
-(defmethod find-if (pred object &rest kwargs &key key)
+(defmethod find-if (pred object &rest kwargs &key key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key)))
     (with-one-argument-test (pred key)
       (do-iterator-elements (e object
                                (apply #'make-iterator object new-kwargs) nil)
         (when (satisfies-the-test e) (return e))))))
 
-(defmethod find-if-not (pred object &rest kwargs &key key)
+(defmethod find-if-not (pred object &rest kwargs &key key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key)))
     (with-one-argument-test (pred key)
       (do-iterator-elements (e object
                                (apply #'make-iterator object new-kwargs) nil)
         (unless (satisfies-the-test e) (return e))))))
 
-(defmethod position (item object &rest kwargs &key test test-not key)
+(defmethod position (item object &rest kwargs
+                     &key test test-not key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key))
         (pos 0))
     (with-two-argument-test (test test-not key)
@@ -57,7 +60,7 @@
         (when (satisfies-the-test item e) (return pos))
         (incf pos)))))
 
-(defmethod position-if (pred object &rest kwargs &key key)
+(defmethod position-if (pred object &rest kwargs &key key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key))
         (pos 0))
     (with-one-argument-test (pred key)
@@ -66,7 +69,8 @@
         (when (satisfies-the-test e) (return pos))
         (incf pos)))))
 
-(defmethod position-if-not (pred object &rest kwargs &key key)
+(defmethod position-if-not (pred object &rest kwargs
+                            &key key &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key))
         (pos 0))
     (with-one-argument-test (pred key)
@@ -75,12 +79,12 @@
         (unless (satisfies-the-test e) (return pos))
         (incf pos)))))
 
-(defmethod fill (object item &rest kwargs &key)
+(defmethod fill (object item &rest kwargs &key &allow-other-keys)
   (do-iterator (eltf object (apply #'make-iterator object kwargs) object)
     (setf (eltf) item)))
 
-(defmethod nsubstitute (new old object
-                        &rest kwargs &key test test-not count key)
+(defmethod nsubstitute (new old object &rest kwargs
+                        &key test test-not count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :test :test-not :count :key)))
     (with-two-argument-test (test test-not key)
@@ -91,7 +95,8 @@
           (incf counter)
           (setf (eltf) new))))))
 
-(defmethod nsubstitute-if (new pred object &rest kwargs &key count key)
+(defmethod nsubstitute-if (new pred object &rest kwargs
+                           &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (with-one-argument-test (pred key)
@@ -103,7 +108,7 @@
           (setf (eltf) new))))))
 
 (defmethod nsubstitute-if-not
-    (new pred object &rest kwargs &key count key)
+    (new pred object &rest kwargs &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (with-one-argument-test (pred key)
@@ -114,8 +119,8 @@
           (incf counter)
           (setf (eltf) new))))))
 
-(defmethod substitute (new old object
-                       &rest kwargs &key test test-not count key)
+(defmethod substitute (new old object &rest kwargs
+                       &key test test-not count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :test :test-not :count :key)))
     (do-accumulator (accum (apply #'make-accumulator object new-kwargs))
@@ -126,7 +131,8 @@
           (incf counter)
           (accum (if (satisfies-the-test old e) new e)))))))
 
-(defmethod substitute-if (new pred object &rest kwargs &key count key)
+(defmethod substitute-if (new pred object &rest kwargs
+                          &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (do-accumulator (accum (apply #'make-accumulator object new-kwargs))
@@ -137,7 +143,8 @@
           (incf counter)
           (accum (if (satisfies-the-test e) new e)))))))
 
-(defmethod substitute-if-not (new pred object &rest kwargs &key count key)
+(defmethod substitute-if-not (new pred object &rest kwargs
+                              &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (do-accumulator (accum (apply #'make-accumulator object new-kwargs))
@@ -156,7 +163,8 @@
 (defmethod delete-if-not (predicate object &rest kwargs)
   (apply #'remove-if-not predicate object kwargs))
 
-(defmethod remove (item object &rest kwargs &key test test-not count key)
+(defmethod remove (item object &rest kwargs
+                   &key test test-not count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :test :test :test-not :count)))
     (with-two-argument-test (test test-not key)
@@ -168,7 +176,8 @@
           (incf counter)
           (accum e)))))))
 
-(defmethod remove-if (pred object &rest kwargs &key count key)
+(defmethod remove-if (pred object &rest kwargs
+                      &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (with-one-argument-test (pred key)
@@ -180,7 +189,8 @@
             (incf counter)
             (accum e)))))))
 
-(defmethod remove-if-not (pred object &rest kwargs &key count key)
+(defmethod remove-if-not (pred object &rest kwargs
+                          &key count key &allow-other-keys)
   (let ((counter 0)
         (new-kwargs (remove-kwargs kwargs :count :key)))
     (with-one-argument-test (pred key)
@@ -195,7 +205,7 @@
 ;;;
 
 (defmethod foldl (function object initial-value
-                  &rest kwargs &key (key #'identity))
+                  &rest kwargs &key (key #'identity) &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key)))
     (do-iterator-elements (e object
                              (apply #'make-iterator object new-kwargs)
@@ -203,7 +213,7 @@
       (setf initial-value (funcall function initial-value (funcall key e))))))
 
 (defmethod foldr (function object initial-value
-                  &rest kwargs &key (key #'identity))
+                  &rest kwargs &key (key #'identity) &allow-other-keys)
   (let ((new-kwargs (remove-kwargs kwargs :key)))
     (do-iterator-elements (e object
                              (apply #'make-iterator object new-kwargs)
