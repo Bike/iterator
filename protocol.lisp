@@ -5,10 +5,10 @@
 (defgeneric make-iterator (object &key))
 ;;; helper
 (defmacro with-iterator
-    ((&whole vars &optional iterator step endp elt setelt)
+    ((&whole vars &optional iterator limit step endp elt setelt)
      (object &rest kwargs &key &allow-other-keys)
      &body body)
-  (declare (ignore iterator step endp elt setelt))
+  (declare (ignore iterator limit step endp elt setelt))
   (let* ((ignored nil)
          (vars
            (mapcar
@@ -17,7 +17,7 @@
             vars)))
     `(multiple-value-bind (,@vars)
          (make-iterator ,object ,@kwargs)
-       (declare (type function ,@(nthcdr 1 vars)) (ignore ,@ignored))
+       (declare (type function ,@(nthcdr 2 vars)) (ignore ,@ignored))
        ,@body)))
 
 ;;; Accumulator protocol
