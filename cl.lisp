@@ -70,24 +70,21 @@
           (if from-end #'vector-step-back #'vector-step-forward)
           #'vector-endp #'vector-elt #'(setf vector-elt)))
 
-(defun vector-accumulate-forward (new-value accum idx)
-  (setf (aref accum idx) new-value)
+(defun vector-accumulate (new-value accum idx)
+  (vector-push-extend new-value accum)
   (1+ idx))
-
-(defun vector-accumulate-back (new-value accum idx)
-  (setf (aref accum idx) new-value)
-  (1- idx))
 
 (defun vector-finalize-forward (accum idx)
   (subseq accum 0 idx))
 
 (defun vector-finalize-back (accum idx)
-  (subseq accum idx))
+  (nreverse (subseq accum 0 idx)))
 
 (defmethod make-accumulator ((object vector)
                              &key (start 0) (end (length object)) from-end)
   (values (make-array (- end start)
+                      :fill-pointer 0 :adjustable t
                       :element-type (array-element-type object))
-          (if from-end (- end start 1) 0)
-          (if from-end #'vector-accumulate-back #'vector-accumulate-forward)
+          0
+          #'vector-accumulate
           (if from-end #'vector-finalize-back #'vector-finalize-forward)))
