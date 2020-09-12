@@ -1,10 +1,20 @@
 This is a simplification and generalization of Christophe Rhodes' extensible sequence protocol. It is generalized in the sense that it does not rely on the sequence having a stable indexing or finite size (although several operations are not sensible on infinitely large operands). It is simplified in the sense that, these things being irrelevant, there are fewer functions to define (but also an attendant loss of functionality).
 
-## High level functions
+## "Sequence" functions
 
 There are reimplementations of many CL sequence functions and related. They are generic functions, but methods can only be defined as an optimization; behavior of iterables must be wholly specified by their methods on the protocol functions (see below).
 
-Some functions have been skipped because they only make sense on ordered sequences: subseq, replace, reverse, mismatch, search, and sort. merge, map, and concatenate have not been implemented but are planned to be once I figure out a good way to do so. reduce is not implemented because its _from-end_ argument specifies both an iteration order and an associativity direction; instead there are _foldl_ and _foldr_. _position_ and etc. are defined, but may return silly results on non-sequences.
+Keyword arguments relating to their nature as sequences have been removed from the general signatures, e.g. _from-end_. They keep keyword arguments relating their function, e.g. _test-not_ or _count_. Other keyword arguments, including the sequence arguments, are passed on unmolested to _make-iterator_, which can do whatever with them.
+
+Some functions have been skipped because they only make sense on ordered sequences: subseq, replace, reverse, mismatch, search, and sort. reduce is not implemented because its _from-end_ argument specifies both an iteration order and an associativity direction; instead there are _foldl_ and _foldr_. _position_ and etc. are defined, but may return silly results on non-sequences.
+
+## n-arity "sequence" functions and iterator objects
+
+The functions _map_, _map-into_, _concatenate_, and _merge_ are available but have a different interface. For example, _map_ takes an "accumulator" as its first argument rather than a type, and an "iterator" object instead of sequences. These are returned by the _accumulator_ and _iterator_ functions respectively. These two functions take an iterable object as their first argument, and keyword arguments valid to _make-iterator_ on that object for the rest, and return encapsulated objects for accumulator and iterator states, as described in the protocol below.
+
+As an example, consider the following code: `(map (accumulator nil :from-end t) #'1+ (iterator (vector 4 5 6) :start 1))`. The accumulator has a list as its prototype argument, so `map` will return a list. `:from-end t` means it will accumulate results in reverse. `(iterator (vector 4 5 6) :start 1)` will iterate over 5 (because of the `:start`) and then 6 and then stop. So, first `(1+ 5) = 6` is accumulated, then `(1+ 6) = 7`; now the iterator has run out so `map` returns its result. Because of `:from-end t`, this is `(7 6)` rather than `(6 7)`.
+
+Compiler macros on these functions will expand them into loops when passed arguments of the form `(iterator ...)` and `(accumulator ...`). This increases code size but means the encapsulation objects are never consed.
 
 ## Interface
 
@@ -58,6 +68,6 @@ _Generic Function_ **MAKE-ACCUMULATOR**
 
 **Description:**
 
-Defines the protocol for building up an object. _accumulate_ is repeatedly called with new values to add to the object. Once all values have been added, _finalize_ is called and returns a completed object; after this, calling either function may result in undefined behavior.
+Defines the protocol for building up an object. _object_ serves as a prototype, i.e. an object of the same type will be constructed, but _object_'s elements are probably not relevant.. _accumulate_ is repeatedly called with new values to add to the object. Once all values have been added, _finalize_ is called and returns a completed object; after this, calling either function may result in undefined behavior.
 
 _make-accumulator_ methods should be prepared to accept any keyword arguments that are allowed for the _make-iterator_ method on the same object, but they may be interpreted differently or simply ignored. For example, a _start_ keyword argument would not stop an accumulated sequence from starting at zero, but in concert with an _end_ argument may define the initial size for the accumulated sequence.
