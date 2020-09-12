@@ -46,7 +46,7 @@
   (incf it))
 
 (defun vector-step-back (vector it)
-  (declare (ignore vector) (type (integer 0 (#.array-dimension-limit)) it))
+  (declare (ignore vector) (type (integer -1 (#.array-dimension-limit)) it))
   (decf it))
 
 (defun vector-endp (vector it limit)
