@@ -22,7 +22,6 @@
 (defgeneric delete-duplicates (object &key test test-not key))
 (defgeneric remove-duplicates (object &key test test-not key))
 ;; subseq, replace, reverse, mismatch, search, sort
-;; merge, map, concatenate
 ;; since :from-end to reduce specifies associativity direction as well, it's
 ;; not suitable generically. Instead,
 (defgeneric foldl (function object initial-value &key key))
