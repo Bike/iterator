@@ -7,18 +7,17 @@
         unless (member key kill :test #'eq)
           collect key and collect value))
 
+(declaim (inline function-designated))
+(defun function-designated (function-designator)
+  (etypecase function-designator
+    (function function-designator)
+    (symbol (fdefinition function-designator))))
+
 (defmacro with-one-argument-test ((predicate key) &body body)
   (let ((predg (gensym "PREDICATE")) (keyg (gensym "KEY")))
-    `(let ((,predg ,predicate) (,keyg ,key))
-       (let ((,predg
-               (etypecase ,predg
-                 (function ,predg)
-                 (symbol (fdefinition ,predg))))
-             (,keyg
-               (etypecase ,keyg
-                 (null #'identity)
-                 (function ,keyg)
-                 (symbol (fdefinition ,keyg)))))
+    `(let ((,keyg ,key))
+       (let ((,predg (function-designated ,predicate))
+             (,keyg (if (null ,keyg) #'identity (function-designated ,keyg))))
          (declare (type function ,predg ,keyg))
          (flet ((satisfies-the-test (object)
                   (funcall ,predg (funcall ,keyg object))))
@@ -32,22 +31,14 @@
   (let ((test-notg (gensym "TEST-NOT")) (testg (gensym "TEST"))
         (keyg (gensym "KEY")))
     `(let ((,test-notg ,test-not) (,testg ,test) (,keyg ,key))
-       (let ((,keyg
-               (etypecase ,keyg
-                 (null #'identity)
-                 (function ,keyg)
-                 (symbol (fdefinition ,keyg))))
+       (let ((,keyg (if (null ,keyg) #'identity (function-designated ,keyg)))
              (,testg
                (if ,test-notg
                    (if ,testg
                        (error ":test and :test-not both specified")
-                       (complement (etypecase ,test-notg
-                                     (function ,test-notg)
-                                     (symbol (fdefinition ,test-notg)))))
+                       (complement (function-designated ,test-notg)))
                    (if ,testg
-                       (etypecase ,testg
-                         (function ,testg)
-                         (symbol (fdefinition ,testg)))
+                       (function-designated ,testg)
                        #'eql))))
          (declare (type function ,keyg ,testg))
          (flet ((satisfies-the-test (object element)
