@@ -33,11 +33,21 @@
   (declare (ignore idx))
   (cdr accum))
 
+(defun list-accumulate-back (new-value accum idx)
+  (declare (ignore accum))
+  (cons new-value idx))
+
+(defun list-finalize-back (accum idx)
+  (declare (ignore accum))
+  idx)
+
 (defmethod make-accumulator ((object list) &key (start 0) end from-end)
   (declare (ignore start end))
-  (when from-end (error "FIXME: Not supported yet, sorry!"))
-  (let ((accum (list nil)))
-    (values accum accum #'list-accumulate-forward #'list-finalize-forward)))
+  (if from-end
+      (values nil nil #'list-accumulate-back #'list-finalize-back)
+      (let ((accum (list nil)))
+        (values accum accum
+                #'list-accumulate-forward #'list-finalize-forward))))
 
  ;;; Vector
 
